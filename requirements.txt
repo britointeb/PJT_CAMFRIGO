@@ -3,6 +3,6 @@ numpy==2.2.4
 pillow
 openpyxl
 pandas==2.0.3
-plotly
+plotly==5.9.0
 streamlit==1.27.1
 wordcloud
