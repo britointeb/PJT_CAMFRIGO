@@ -1,10 +1,10 @@
 matplotlib
-numpy==2.2.4
+numpy
 pillow
-openpyxl==3.0.10
-pandas==2.0.3
-plotly==5.9.0
-streamlit==1.27.1
+openpyxl
+pandas
+plotly
+streamlit
 wordcloud
 unicodedata
 os
