@@ -1,7 +1,9 @@
 matplotlib
 numpy
+locale
+pillow
 openpyxl
 pandas
 plotly
 streamlit==1.27.1
-wordcloud==1.9.4
+wordcloud
