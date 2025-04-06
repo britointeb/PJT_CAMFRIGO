@@ -9,3 +9,5 @@ wordcloud
 unicodedata
 os
 io
+re
+datetime
