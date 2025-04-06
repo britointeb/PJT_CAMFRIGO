@@ -1,7 +1,7 @@
-matplotlib==3.7.2
-numpy==2.2.4
+matplotlib
+numpy
 openpyxl==3.0.10
-pandas==2.0.3
-plotly==5.9.0
+pandas
+plotly
 streamlit==1.27.1
 wordcloud==1.9.4
