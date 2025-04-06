@@ -2,7 +2,7 @@ matplotlib
 numpy
 pillow
 openpyxl
-pandas
+pandas==2.0.3
 plotly
 streamlit==1.27.1
 wordcloud
