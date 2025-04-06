@@ -1,5 +1,5 @@
 matplotlib
-numpy
+numpy==2.2.4
 pillow
 openpyxl
 pandas==2.0.3
