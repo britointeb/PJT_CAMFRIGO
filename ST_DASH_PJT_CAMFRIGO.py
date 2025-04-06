@@ -146,7 +146,7 @@ if not df_servicos.empty:
             st.error("Coluna de valor não encontrada no arquivo de serviços.")
 if not df_problemas.empty:
     df_problemas.columns = [remover_acentos(col.strip().lower().replace(" ", "_")) for col in df_problemas.columns]
-    # As colunas de interesse para word clouds serão identificadas via busca de substring
+    # As colunas de interesse para as word clouds serão identificadas via busca de substring
 
 # --------------------------------------------------
 # Cabeçalho do Dashboard
@@ -321,7 +321,7 @@ if df_servicos.empty:
     st.info("Arquivo de serviços não contém dados.")
 else:
     # Excluir disciplinas "total" e "total com bdi"
-    df_servicos_filtered = df_servicos[~df_servicos["disciplina"].str.lower().isin(["total", "total com bdi"])]
+    df_servicos_filtered = df_servicos[~df_servicos["disciplina"].str.strip().str.lower().isin(["total", "total com bdi"])]
     df_servicos_filtered["valor"] = df_servicos_filtered["valor"].apply(converter_valor_para_numero)
     
     st.subheader("Indicadores por Disciplina")
