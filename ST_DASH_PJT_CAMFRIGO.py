@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import openpyxl
 import unicodedata
+import re
 from wordcloud import WordCloud
 
 # Função para remover acentos de uma string
@@ -19,11 +20,26 @@ def remover_acentos(txt):
     return ''.join(c for c in unicodedata.normalize('NFD', txt) if unicodedata.category(c) != 'Mn')
 
 # Função para tokenizar e contar as palavras (para gerar as frequências)
-def tokenize_and_count(series):
-    words = []
+def tokenize_and_count(series, stopwords):
+    """
+    Recebe uma Series (coluna de texto) e retorna um dicionário de frequências,
+    removendo stopwords, pontuação e acentos, e convertendo tudo para minúsculas.
+    """
+    freq = {}
     for text in series.dropna():
-        words.extend(text.split())
-    return pd.Series(words).value_counts().to_dict()
+        # Converter para minúsculas
+        text = text.lower()
+        # Remover acentos
+        text = remover_acentos(text)
+        # Remover pontuação (mantém apenas letras e dígitos e espaços)
+        text = re.sub(r'[^a-z0-9\s]', '', text)
+        # Dividir em palavras
+        words = text.split()
+        # Contar palavras, ignorando stopwords
+        for w in words:
+            if w not in stopwords:
+                freq[w] = freq.get(w, 0) + 1
+    return freq
 
 # Stopwords personalizadas (acrescentamos "a", "há" e "o")
 stopwords = set(WordCloud().stopwords)
@@ -52,39 +68,29 @@ st.set_page_config(
     layout="wide"
 )
 
-# Função para carregar o logo
+# Função para carregar o logo com fallback
 def load_colog_logo():
+    # Tenta carregar do caminho absoluto
+    logo_path = r"D:\GoogleDrive britointeb\IMAGENS\Logo_Colog_Sem_Fundo.png"
+    if os.path.exists(logo_path):
+        return Image.open(logo_path)
+    # Se não encontrar, tenta carregar do diretório local
+    local_logo = "Logo_Colog_Sem_Fundo.png"
+    if os.path.exists(local_logo):
+        return Image.open(local_logo)
+    # Se ainda não encontrar, cria uma imagem com um emoji de happy face
+    from PIL import ImageDraw, ImageFont
+    img = Image.new('RGB', (120, 120), color='white')
+    draw = ImageDraw.Draw(img)
     try:
-        logo_path = r"D:\GoogleDrive britointeb\IMAGENS\Logo_Colog_Sem_Fundo.png"
-        if os.path.exists(logo_path):
-            return Image.open(logo_path)
-        else:
-            st.sidebar.warning(f"Arquivo do logo não encontrado em: {logo_path}. Usando placeholder.")
-            raise FileNotFoundError
-    except Exception as e:
-        st.sidebar.warning(f"Não foi possível carregar o logo. Usando placeholder. Erro: {e}")
-        fig, ax = plt.subplots(figsize=(3, 3))
-        ax.set_xlim(0, 10)
-        ax.set_ylim(0, 10)
-        rect = patches.Rectangle((0, 0), 10, 10, linewidth=1, edgecolor='black', facecolor='#FFDB00')
-        ax.add_patch(rect)
-        rect = patches.Rectangle((1, 7), 8, 2, linewidth=1, edgecolor=None, facecolor='#FF0000')
-        ax.add_patch(rect)
-        rect = patches.Rectangle((1, 5.5), 8, 1.5, linewidth=1, edgecolor=None, facecolor='#00AEEF')
-        ax.add_patch(rect)
-        rect = patches.Rectangle((1, 1), 4, 4.5, linewidth=1, edgecolor=None, facecolor='#FF0000')
-        ax.add_patch(rect)
-        rect = patches.Rectangle((5, 3.5), 4, 2, linewidth=1, edgecolor=None, facecolor='#FFDB00')
-        ax.add_patch(rect)
-        rect = patches.Rectangle((5, 1), 4, 2.5, linewidth=1, edgecolor=None, facecolor='#CCCCCC')
-        ax.add_patch(rect)
-        ax.text(5, 8, "COLOG", fontsize=15, ha='center', va='center', color='white', weight='bold')
-        ax.axis('off')
-        buf = io.BytesIO()
-        fig.savefig(buf, format='png')
-        buf.seek(0)
-        plt.close(fig)
-        return Image.open(buf)
+        font = ImageFont.truetype("DejaVuSans.ttf", 80)
+    except Exception:
+        font = ImageFont.load_default()
+    emoji_text = "😊"
+    text_width, text_height = draw.textsize(emoji_text, font=font)
+    position = ((120 - text_width) // 2, (120 - text_height) // 2)
+    draw.text(position, emoji_text, fill="black", font=font)
+    return img
 
 # Função para converter valores para float
 def converter_valor_para_numero(valor_str):
@@ -129,7 +135,7 @@ except Exception as e:
     st.error(f"Erro ao carregar {caminho_problemas}: {e}")
     df_problemas = pd.DataFrame()
 
-# Padronizar os nomes das colunas para todos os arquivos
+# Padronizar os nomes das colunas
 if not df_resumo.empty:
     df_resumo.columns = [remover_acentos(col.strip().lower().replace(" ", "_")) for col in df_resumo.columns]
     if "valor" not in df_resumo.columns:
@@ -146,7 +152,7 @@ if not df_servicos.empty:
             st.error("Coluna de valor não encontrada no arquivo de serviços.")
 if not df_problemas.empty:
     df_problemas.columns = [remover_acentos(col.strip().lower().replace(" ", "_")) for col in df_problemas.columns]
-    # As colunas de interesse para as word clouds serão identificadas via busca de substring
+    # As colunas para word clouds serão identificadas via busca de substring
 
 # --------------------------------------------------
 # Cabeçalho do Dashboard
@@ -396,7 +402,7 @@ else:
             col_def = col
             break
     if col_def:
-        freq_defeitos = tokenize_and_count(df_problemas_filtrado[col_def])
+        freq_defeitos = tokenize_and_count(df_problemas_filtrado[col_def], stopwords)
         if freq_defeitos:
             wc_defeitos = WordCloud(width=800, height=400, background_color='white', stopwords=stopwords)\
                 .generate_from_frequencies(freq_defeitos)
@@ -414,7 +420,7 @@ else:
             col_sol = col
             break
     if col_sol:
-        freq_solucoes = tokenize_and_count(df_problemas_filtrado[col_sol])
+        freq_solucoes = tokenize_and_count(df_problemas_filtrado[col_sol], stopwords)
         if freq_solucoes:
             wc_solucoes = WordCloud(width=800, height=400, background_color='white', stopwords=stopwords)\
                 .generate_from_frequencies(freq_solucoes)
