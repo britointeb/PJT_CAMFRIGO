@@ -1,6 +1,6 @@
 matplotlib
 numpy
-openpyxl==3.0.10
+openpyxl
 pandas
 plotly
 streamlit==1.27.1
