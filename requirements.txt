@@ -6,6 +6,5 @@ pandas
 plotly
 streamlit==1.27.1
 wordcloud
-io
 re
 datetime
