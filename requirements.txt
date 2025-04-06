@@ -1,6 +1,5 @@
 matplotlib
 numpy
-locale
 pillow
 openpyxl
 pandas
